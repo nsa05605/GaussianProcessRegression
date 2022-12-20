@@ -139,10 +139,9 @@ print("Sampling At Grid Points")
 f_mean, f_var = m._raw_predict(pred_points)
 f_mean = np.exp(f_mean)
 
-print(len(pred_points[:,0]))
-print(len(f_mean))
+print(pred_point)
 
-'''
+
 # Plot GPR output on map
 # Adjust plot coordinates based on size and resolution of the SLAM map
 x_values = np.arange(0, map.shape[1])*metadata["resolution"] + metadata["origin"][0]
@@ -176,4 +175,3 @@ f = open(directory + output_file, "wt") # Should clear existing file of same nam
 f.close()
 # Could be replaced with Pandas approach
 np.savetxt(directory + output_file, gpy_output, delimiter=",", header='"x","y","mean","variance","upper_var","lower_var"', comments='')
-'''

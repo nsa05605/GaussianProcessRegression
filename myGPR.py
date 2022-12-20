@@ -18,6 +18,7 @@ X = np.array(data_raw[:,0:3])       # x, y, z
 Y = np.array([data_raw[:, 3]]).T    # counts
 print("Data Ready")
 
+
 # Gaussian Process Regression
 # A poisson distribution is used
 poisson_likelihood = GPy.likelihoods.Poisson()
@@ -83,9 +84,19 @@ pred_point = grid
 print("Generated Grid of Points : " + str(grid.shape[0]))
 print("Sampling at Grid Points")
 
+z = np.ones((24871, 1))
+z *= 0.38
+p = np.hstack([pred_point, z])
+
+print(p)
+
 ### 3차원으로 확장하면 여기에서 차원 관련 오류
-#f_mean, f_var = m._raw_predict(pred_point)
-#f_mean = np.exp(f_mean)
+f_mean, f_var = m._raw_predict(p)
+f_mean = np.exp(f_mean)
+
+# print(f_mean)
+print(max(f_mean))
+print(min(f_mean))
 
 ### sklearn이랑 결합해서 하는 방법이 있을지 생각
 ### 없다면 sklearn으로 구현해야 할듯
@@ -94,20 +105,21 @@ print("Sampling at Grid Points")
 ### grid 타입 확인해보고
 ### z축 임의로 넣어서 결과 보기
 
-kernel = 1 * RBF(length_scale=1.0)
-gp = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=9)
-gp.fit(X,Y)
-print(gp.kernel_)
 
-mean_prediction, std_prediction = gp.predict(pred_point, return_std=True)
 
-xs = X[:, 0]    # x
-ys = X[:, 1]    # y
-zs = X[:, 2]    # z
-color = Y
+# print(pred_point)
+# print(len(pred_point))
+#print(pred_point.shape)
+# print(type(pred_point)) ## class 'numpy.ndarray
+#                         ## ndarray는 NumPy의 N차원 배열 객체
+
+xs = p[:, 0]    # x
+ys = p[:, 1]    # y
+zs = p[:, 2]    # z
+color = f_mean
 
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
-ax.scatter(xs, ys, zs, c=color, marker='o', s=15, cmap='jet')
+ax.scatter(xs, ys, zs, c=color, marker='s', s=1, cmap='jet')
 
 plt.show()
