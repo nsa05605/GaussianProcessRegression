@@ -139,7 +139,7 @@ print("Sampling At Grid Points")
 f_mean, f_var = m._raw_predict(pred_points)
 f_mean = np.exp(f_mean)
 
-print(pred_point)
+print(pred_points)
 
 
 # Plot GPR output on map
@@ -164,7 +164,6 @@ plt.xlim([-4,4])
 plt.ylim([-8,0])
 plt.colorbar()
 plt.show()
-
 
 f_upper, f_lower = f_mean + 2*np.sqrt(f_var), f_mean - 2.*np.sqrt(f_var)
 

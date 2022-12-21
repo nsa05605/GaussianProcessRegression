@@ -53,6 +53,8 @@ class GaussianProcessRegressor(MultiOutputMixin, RegressorMixin, BaseEstimator):
         the kernel hyperparameters are optimized during fitting unless the
         bounds are marked as "fixed".
 
+    # fitting 중에 커널의 대각 요소에 더해주는 값으로, 잠재적인 numerical issue를 막아준다.
+    # 노이즈의 분산으로 생각해도 되는데, WhiteKernel을 쓰는 것이랑은 조금 다름.
     alpha : float or ndarray of shape (n_samples,), default=1e-10
         Value added to the diagonal of the kernel matrix during fitting.
         This can prevent a potential numerical issue during fitting, by
@@ -65,6 +67,7 @@ class GaussianProcessRegressor(MultiOutputMixin, RegressorMixin, BaseEstimator):
         noise level directly as a parameter is mainly for convenience and
         for consistency with :class:`~sklearn.linear_model.Ridge`.
 
+    # 기본적으로 L-BFGS-B
     optimizer : "fmin_l_bfgs_b", callable or None, default="fmin_l_bfgs_b"
         Can either be one of the internally supported optimizers for optimizing
         the kernel's parameters, specified by a string, or an externally
@@ -88,6 +91,7 @@ class GaussianProcessRegressor(MultiOutputMixin, RegressorMixin, BaseEstimator):
         is used. If None is passed, the kernel's parameters are kept fixed.
         Available internal optimizers are: `{'fmin_l_bfgs_b'}`.
 
+    # 최대의 log-marginal likelihood를 찾기 위한 반복 수
     n_restarts_optimizer : int, default=0
         The number of restarts of the optimizer for finding the kernel's
         parameters which maximize the log-marginal likelihood. The first run
@@ -96,6 +100,7 @@ class GaussianProcessRegressor(MultiOutputMixin, RegressorMixin, BaseEstimator):
         from the space of allowed theta-values. If greater than 0, all bounds
         must be finite. Note that `n_restarts_optimizer == 0` implies that one
         run is performed.
+
 
     normalize_y : bool, default=False
         Whether or not to normalize the target values `y` by removing the mean

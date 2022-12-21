@@ -17,14 +17,14 @@ This uses the openly available GPy library to perform the regression.
 """
 
 # Directory for file storage
-directory = "/home/rail/PycharmProjects/GPR/LUNL/"
+directory = "C:/Users/jihun/PycharmProjects/GaussianProcessRegression/LUNL/"
 input_file = "LUNL_radiation_data.txt"
 output_file = "LUNL_2Drad_GPR.txt"
 
 # Import raw data
 # File format = timestamp, x, y, z, counts (per second)
 # Only extract the necessary columns of x, y, and counts
-data_raw = np.array(pandas.read_csv(directory + input_file, delimiter=',', header=0, usecols=['x','y','counts']))
+data_raw = np.array(pandas.read_csv(directory + input_file, delimiter=',', header=0, usecols=['x','y','z','counts']))
 
 # Extract the x and y position values as "X" inputs for regression, along with count values as "Y" in the regression
 X = np.array(data_raw[:,0:2])   # x, y
