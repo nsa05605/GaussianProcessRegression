@@ -1,3 +1,6 @@
+### 기존 myGPR.py는 LUNL 데이터셋에 대해 작업한 내용
+### JSI 데이터셋으로 옮기는 작업 진행
+
 import numpy as np
 import pandas
 import matplotlib.pyplot as plt
@@ -9,9 +12,9 @@ from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF
 
 #directory = "C:/Users/rail/PycharmProjects/GaussianProcessRegression/LUNL/"    # 노트북
-directory = "C:/Users/jihun/PycharmProjects/GaussianProcessRegression/LUNL/"    # 연구실
-input_file = "LUNL_radiation_data.txt"
-output_file = "LUNL_2Drad_GPR.txt"
+directory = "C:/Users/jihun/PycharmProjects/GaussianProcessRegression/JSI/"    # 연구실
+input_file = "JSI_radiation_data.txt"
+output_file = "JSI_2Drad_GPR.txt"
 
 data_raw = np.array(pandas.read_csv(directory + input_file, delimiter=',', header=0, usecols=['x','y','z','counts']))
 
@@ -41,8 +44,8 @@ print(m)
 # mapFile Loading
 # 기존에는 2D 지도라 Occupancy Grid Map이 들어왔는데, 지금은 3D 지도라 궁극적으로 OctoMap이 들어와야 할듯
 # 아직 지도는 없어서 지도 없이 진행
-mapFile = "LUNL_SLAM_map.pgm"
-metaFile = "LUNL_SLAM_map.yaml"
+mapFile = "JSI_SLAM_map.pgm"
+metaFile = "JSI_SLAM_map.yaml"
 
 FREESPACE = 254
 OCCUPIED = 0
@@ -94,7 +97,7 @@ pred_point = grid
 print("Generated Grid of Points : " + str(grid.shape[0]))
 print("Sampling at Grid Points")
 
-# print(pred_point)
+print(pred_point.shape)
 
 ### sklearn이랑 결합해서 하는 방법이 있을지 생각
 ### 없다면 sklearn으로 구현해야 할듯
@@ -144,13 +147,17 @@ p = np.vstack((p1,p2,p3,p4,p5))
 print(p.shape)
 '''
 
-
+'''
 ### 3차원 구현 코드
 ### 아직은 man's power가 필요해서 자동으로 z축 확장하는 방법도 고안이 필요함
 ### 추가로 현재 resolution이 0.05로 설정해놔서 지도 생성하는데 시간이 꽤 소요됨
 ### resolution을 0.10 정도로 줄여서 실행해보기
 ### resolution 문제가 아니라 grid 생성하는 부분을 찾아봐야 할듯
 ### 추가로 현재 결과를 보면 0에 가까운 공간까지 모두 진한 파랑색으로 칠해서 지도를 이해하기 어려운 단점이 있음
+
+#############################################
+### JSI에서는 z축을 생성할 때, 개수 수정 필요함 ### -> 102871
+#############################################
 z = np.zeros((24871, 1))
 p = np.hstack([pred_point, z])
 
@@ -191,6 +198,7 @@ f_mean = np.delete(f_mean, np.where(f_mean < 2), axis=0)
 # print(f_mean)
 
 ### (0,0,0) 좌표에 0값을 하나 추가
+### 정규화를 위해
 p = np.append(p, [[0.0, 0.0, 0.0]], axis=0)
 f_mean = np.append(f_mean, [[0.0]], axis=0)
 
@@ -209,16 +217,14 @@ z = np.array(data_raw[:, 2])
 
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
-# x_values = np.arange(0, map.shape[1]) * metadata["resolution"] + metadata["origin"][0]
-# y_values = np.arange(0, map.shape[0]) * metadata["resolution"] + metadata["origin"][1]
 ax.scatter(xs, ys, zs, c=color, marker='s', s=1, cmap='jet', alpha=0.3)
 ax.scatter(x, y, z, c=Y, s=3, cmap='jet')
-ax.set_xlim([-5,3])
-ax.set_ylim([-8,0])
+ax.set_xlim([-20.0,6.0])
+ax.set_ylim([-15.0,15.0])
 ax.set_zlim([0,8])
 plt.show()
 
-'''
+
 fig2 = plt.figure(figsize=(6,6))
 ax2 = fig2.add_subplot(111, projection='3d')
 x = np.array(data_raw[:, 0])
