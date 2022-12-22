@@ -18,7 +18,7 @@
 
 ### 2022/12/22
 - 3차원 방사선 지도 제작
-  - 드론으로 제작한 데이터셋(https://github.com/ntnu-arl/radiation-source-localization-dataset)을 활용해서 진행
+  - 드론으로 제작한 데이터셋(https://github.com/ntnu-arl/radiation-source-localization-dataset) 을 활용해서 진행
   - bag 파일 내부에서 pose와 measurements의 timestamp가 다른 문제가 있어서, extract_rad_data.py 파일을 통해 데이터 처리
     - measurements.txt 파일에서도 초 단위로 측정 값을 모으고, 평균을 내서 해당 초의 대표 값으로 설정
     - pose.txt 파일이 더 적은 범위의 timestamp를 갖고 있기 때문에 기준으로 삼고 00초에 가장 가까운 time을 추출
