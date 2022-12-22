@@ -8,9 +8,9 @@ from mpl_toolkits.mplot3d import Axes3D
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF
 
-#directory = "C:/Users/rail/PycharmProjects/GaussianProcessRegression/LUNL/"    # 노트북
-directory = "C:/Users/jihun/PycharmProjects/GaussianProcessRegression/LUNL/"    # 연구실
-input_file = "LUNL_radiation_data.txt"
+
+directory = "C:/Users/jihun/PycharmPRojects/GaussianProcessRegression/"
+input_file = "radiation_data.txt"
 output_file = "LUNL_2Drad_GPR.txt"
 
 data_raw = np.array(pandas.read_csv(directory + input_file, delimiter=',', header=0, usecols=['x','y','z','counts']))
@@ -18,7 +18,6 @@ data_raw = np.array(pandas.read_csv(directory + input_file, delimiter=',', heade
 X = np.array(data_raw[:,0:3])       # x, y, z
 Y = np.array([data_raw[:, 3]]).T    # counts
 print("Data Ready")
-
 
 # Gaussian Process Regression
 # A poisson distribution is used
@@ -41,8 +40,8 @@ print(m)
 # mapFile Loading
 # 기존에는 2D 지도라 Occupancy Grid Map이 들어왔는데, 지금은 3D 지도라 궁극적으로 OctoMap이 들어와야 할듯
 # 아직 지도는 없어서 지도 없이 진행
-mapFile = "LUNL_SLAM_map.pgm"
-metaFile = "LUNL_SLAM_map.yaml"
+mapFile = "LUNL/LUNL_SLAM_map.pgm"
+metaFile = "LUNL/LUNL_SLAM_map.yaml"
 
 FREESPACE = 254
 OCCUPIED = 0
@@ -70,7 +69,7 @@ print("Map Metadata : ")
 for key in metadata.keys():
     print(key, metadata[key])
 
-freespaceOnly = True;
+freespaceOnly = False;
 
 if freespaceOnly:
     cells = np.where(map == FREESPACE)
@@ -90,10 +89,32 @@ else:
     xv, yv = np.meshgrid(xnew, ynew)
     grid = np.dstack((xv.ravel(), yv.ravel()))[0]
 
-pred_point = grid
+### 지도가 아직 없기 때문에 시작 위치 및 예측 범위를 직접 만들어 줘야 함
+origin = [1.0, -2.0]   # 시작 위치
+
+### 161 x 81 x 41 크기로 만들면 될듯?
+x = np.arange(0, 161) * 0.05 + origin[0]
+y = np.arange(0, 81) * 0.05 + origin[1]
+xv, yv = np.meshgrid(x, y)
+m_grid = np.dstack((xv.ravel(), yv.ravel()))[0]
+
+print(m_grid.shape)
+
+pred_point = m_grid
 print("Generated Grid of Points : " + str(grid.shape[0]))
 print("Sampling at Grid Points")
-print(pred_point.shape)
+
+z = np.zeros((13041, 1))
+p = np.hstack([pred_point, z])
+
+for i in range(1, 41):
+    z = np.ones((13041, 1))
+    z *= 0.05*i
+    p1 = np.hstack([pred_point, z])
+    p = np.vstack((p, p1))
+print(p.shape)
+
+
 # print(pred_point)
 
 ### sklearn이랑 결합해서 하는 방법이 있을지 생각
@@ -144,26 +165,6 @@ p = np.vstack((p1,p2,p3,p4,p5))
 print(p.shape)
 '''
 
-
-### 3차원 구현 코드
-### 아직은 man's power가 필요해서 자동으로 z축 확장하는 방법도 고안이 필요함
-### 추가로 현재 resolution이 0.05로 설정해놔서 지도 생성하는데 시간이 꽤 소요됨
-### resolution을 0.10 정도로 줄여서 실행해보기
-### resolution 문제가 아니라 grid 생성하는 부분을 찾아봐야 할듯
-### 추가로 현재 결과를 보면 0에 가까운 공간까지 모두 진한 파랑색으로 칠해서 지도를 이해하기 어려운 단점이 있음
-z = np.zeros((24871, 1))
-p = np.hstack([pred_point, z])
-
-for i in range(1, 21):
-    ### p_i를 만들어서 vstack에 넣기
-    ### 최종 결과 p.shape은 (522291, 3)이 나와야 함
-    z = np.ones((24871, 1))
-    z *= 0.05*i
-    p1 = np.hstack([pred_point, z])
-    p = np.vstack((p, p1))
-print(p.shape)
-
-'''
 ### 3차원으로 확장하면 여기에서 차원 관련 오류
 ### 해결
 f_mean, f_var = m._raw_predict(p)
@@ -173,6 +174,7 @@ f_mean = np.exp(f_mean)
 # print(max(f_mean))
 # print(min(f_mean))
 
+print("f_mean's shape : ")
 print(f_mean.shape)
 
 # print(max(f_mean))
@@ -182,8 +184,8 @@ print(f_mean.shape)
 
 ### f_mean이 특정 임계값(ex_ 2?)보다 낮으면, 해당 지점을 pred_point에서 제거하는 코드
 
-p = np.delete(p, np.where(f_mean < 2), axis=0)
-f_mean = np.delete(f_mean, np.where(f_mean < 2), axis=0)
+p = np.delete(p, np.where(f_mean < 20), axis=0)
+f_mean = np.delete(f_mean, np.where(f_mean < 20), axis=0)
 # print(p.shape)
 # print(f_mean.shape)
 
@@ -194,9 +196,14 @@ f_mean = np.delete(f_mean, np.where(f_mean < 2), axis=0)
 p = np.append(p, [[0.0, 0.0, 0.0]], axis=0)
 f_mean = np.append(f_mean, [[0.0]], axis=0)
 
+print("revised f_mean's shape : ")
+print(f_mean.shape)
+
+print("max and min values of f_mean : ")
 print(max(f_mean))
 print(min(f_mean))
 
+###
 
 xs = p[:, 0]    # x
 ys = p[:, 1]    # y
@@ -209,25 +216,23 @@ z = np.array(data_raw[:, 2])
 
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
-# x_values = np.arange(0, map.shape[1]) * metadata["resolution"] + metadata["origin"][0]
-# y_values = np.arange(0, map.shape[0]) * metadata["resolution"] + metadata["origin"][1]
 ax.scatter(xs, ys, zs, c=color, marker='s', s=1, cmap='jet', alpha=0.3)
 ax.scatter(x, y, z, c=Y, s=3, cmap='jet')
-ax.set_xlim([-5,3])
-ax.set_ylim([-8,0])
+ax.set_xlim([0,8])
+ax.set_ylim([-4,4])
 ax.set_zlim([0,8])
 plt.show()
-'''
 
-'''
+
+### 측정 데이터를 경로에 따라 점으로 나타내기
+
 fig2 = plt.figure(figsize=(6,6))
 ax2 = fig2.add_subplot(111, projection='3d')
 x = np.array(data_raw[:, 0])
 y = np.array(data_raw[:, 1])
 z = np.array(data_raw[:, 2])
-ax2.set_xlim([-5,3])
-ax2.set_ylim([-8,0])
+ax2.set_xlim([0,8])
+ax2.set_ylim([-4,4])
 ax2.set_zlim([0,8])
 ax2.scatter(x,y,z,c=Y, cmap='jet')
 plt.show()
-'''

@@ -147,7 +147,7 @@ p = np.vstack((p1,p2,p3,p4,p5))
 print(p.shape)
 '''
 
-'''
+
 ### 3차원 구현 코드
 ### 아직은 man's power가 필요해서 자동으로 z축 확장하는 방법도 고안이 필요함
 ### 추가로 현재 resolution이 0.05로 설정해놔서 지도 생성하는데 시간이 꽤 소요됨
@@ -158,13 +158,13 @@ print(p.shape)
 #############################################
 ### JSI에서는 z축을 생성할 때, 개수 수정 필요함 ### -> 102871
 #############################################
-z = np.zeros((24871, 1))
+z = np.zeros((102871, 1))
 p = np.hstack([pred_point, z])
 
 for i in range(1, 21):
     ### p_i를 만들어서 vstack에 넣기
     ### 최종 결과 p.shape은 (522291, 3)이 나와야 함
-    z = np.ones((24871, 1))
+    z = np.ones((102871, 1))
     z *= 0.05*i
     p1 = np.hstack([pred_point, z])
     p = np.vstack((p, p1))
@@ -224,7 +224,7 @@ ax.set_ylim([-15.0,15.0])
 ax.set_zlim([0,8])
 plt.show()
 
-
+'''
 fig2 = plt.figure(figsize=(6,6))
 ax2 = fig2.add_subplot(111, projection='3d')
 x = np.array(data_raw[:, 0])
