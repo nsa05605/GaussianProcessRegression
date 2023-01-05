@@ -9,9 +9,10 @@ from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF
 
 
-directory = "C:/Users/jihun/PycharmPRojects/GaussianProcessRegression/"
-input_file = "radiation_data.txt"
-output_file = "LUNL_2Drad_GPR.txt"
+#directory = "C:/Users/jihun/PycharmPRojects/GaussianProcessRegression/docs/"
+directory = "/home/rail/PycharmProjects/GaussianProcessRegression/"
+input_file = "docs/radiation_data.txt"
+output_file = "Drone_2Drad_GPR_res40.txt"
 
 data_raw = np.array(pandas.read_csv(directory + input_file, delimiter=',', header=0, usecols=['x','y','z','counts']))
 
@@ -93,8 +94,8 @@ else:
 origin = [1.0, -2.0]   # 시작 위치
 
 ### 161 x 81 x 41 크기로 만들면 될듯?
-x = np.arange(0, 161) * 0.05 + origin[0]
-y = np.arange(0, 81) * 0.05 + origin[1]
+x = np.arange(0, 161) * 0.40 + origin[0]
+y = np.arange(0, 81) * 0.40 + origin[1]
 xv, yv = np.meshgrid(x, y)
 m_grid = np.dstack((xv.ravel(), yv.ravel()))[0]
 
@@ -107,9 +108,9 @@ print("Sampling at Grid Points")
 z = np.zeros((13041, 1))
 p = np.hstack([pred_point, z])
 
-for i in range(1, 41):
+for i in range(1, 61):
     z = np.ones((13041, 1))
-    z *= 0.05*i
+    z *= 0.40*i
     p1 = np.hstack([pred_point, z])
     p = np.vstack((p, p1))
 print(p.shape)
@@ -236,3 +237,9 @@ ax2.set_ylim([-4,4])
 ax2.set_zlim([0,8])
 ax2.scatter(x,y,z,c=Y, cmap='jet')
 plt.show()
+
+gpy_output = np.c_[p, f_mean]
+f = open(directory + output_file, "wt")
+f.close()
+
+np.savetxt(directory + output_file, gpy_output, delimiter=',', header='"x","y","z","mean"', comments='')
