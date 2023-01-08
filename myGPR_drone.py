@@ -12,7 +12,7 @@ from sklearn.gaussian_process.kernels import RBF
 #directory = "C:/Users/jihun/PycharmPRojects/GaussianProcessRegression/docs/"
 directory = "/home/rail/PycharmProjects/GaussianProcessRegression/"
 input_file = "docs/radiation_data.txt"
-output_file = "Drone_2Drad_GPR_res40.txt"
+output_file = "Drone_3Drad_GPR_RBF_res40.txt"
 
 data_raw = np.array(pandas.read_csv(directory + input_file, delimiter=',', header=0, usecols=['x','y','z','counts']))
 
@@ -25,8 +25,8 @@ print("Data Ready")
 poisson_likelihood = GPy.likelihoods.Poisson()
 laplace_inf = GPy.inference.latent_function_inference.Laplace()
 
-#k1 = GPy.kern.RBF(input_dim=3, variance=0.8, lengthscale=0.5, ARD=False)
-k1 = GPy.kern.Matern32(input_dim=3, variance=0.8, lengthscale=0.5, ARD=False)
+k1 = GPy.kern.RBF(input_dim=3, variance=0.8, lengthscale=0.5, ARD=False)
+#k1 = GPy.kern.Matern32(input_dim=3, variance=0.8, lengthscale=0.5, ARD=False)
 k2 = GPy.kern.Bias(input_dim=3, variance=0.3)   # noise
 kernel = k1 + k2
 print("Kernel Initialized")
@@ -99,6 +99,7 @@ y = np.arange(0, 81) * 0.40 + origin[1]
 xv, yv = np.meshgrid(x, y)
 m_grid = np.dstack((xv.ravel(), yv.ravel()))[0]
 
+print("m_grid.shape : ")
 print(m_grid.shape)
 
 pred_point = m_grid
