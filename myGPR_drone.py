@@ -9,8 +9,8 @@ from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF
 
 
-#directory = "C:/Users/jihun/PycharmPRojects/GaussianProcessRegression/docs/"
-directory = "/home/rail/PycharmProjects/GaussianProcessRegression/"
+directory = "C:/Users/jihun/PycharmPRojects/GaussianProcessRegression/"
+#directory = "/home/rail/PycharmProjects/GaussianProcessRegression/"
 input_file = "docs/radiation_data.txt"
 output_file = "Drone_3Drad_GPR_RBF_res40.txt"
 
@@ -31,12 +31,14 @@ k2 = GPy.kern.Bias(input_dim=3, variance=0.3)   # noise
 kernel = k1 + k2
 print("Kernel Initialized")
 
+
 m = GPy.core.GP(X=X, Y=Y, likelihood=poisson_likelihood, inference_method=laplace_inf, kernel=kernel)
 print("Pre-optimization : ")
 print(m)
 m.optimize(messages=True, max_f_eval=1000)
 print("Optimized :")
 print(m)
+
 
 # mapFile Loading
 # 기존에는 2D 지도라 Occupancy Grid Map이 들어왔는데, 지금은 3D 지도라 궁극적으로 OctoMap이 들어와야 할듯
