@@ -3,6 +3,7 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 import GPy
+import random
 import cv2
 
 ### 1차원 방사선 데이터 만들기
@@ -35,11 +36,17 @@ while(True):
 
 # measure_x, measure_y 를 랜덤으로 뽑기
 # 해당 값들은 GPR에 적용할 데이터
-measure_x = np.zeros(50)
-measure_y = np.zeros(50)
-for i in range(50):
-    measure_x[i] = X[20 * i]
-    measure_y[i] = Y[20 * i]
+measure_x = np.zeros(20)
+measure_y = np.zeros(20)
+random.seed(0)
+for i in range(20):
+    # rnd = random.randint(0, 1000)
+    # noise = random.randrange(-3,3)
+    # print(rnd)
+    # measure_x[i] = X[rnd]
+    # measure_y[i] = Y[rnd] + noise
+    measure_x[i] = X[i*50]
+    measure_y[i] = Y[i*50]
 
 print("Data Ready")
 
@@ -49,9 +56,10 @@ laplace_inf = GPy.inference.latent_function_inference.Laplace()
 k1 = GPy.kern.Matern32(input_dim=1, variance=3.8, lengthscale=5.4, ARD=False)
 #k1 = GPy.kern.Matern52(input_dim=1, variance=0.5, lengthscale=0.5, ARD=False)
 #k1 = GPy.kern.RBF(input_dim=1, variance=0.5, lengthscale=0.5, ARD=False)
-#k1 = GPy.kern.Exponential(input_dim=1, variance=0.2, lengthscale=0.4, ARD=False)
-k2 = GPy.kern.Bias(input_dim=1, variance=0.3)
-kernel = k1 + k2
+#k1 = GPy.kern.Exponential(input_dim=1, variance=2.5, lengthscale=9.4, ARD=False)
+#k1 = k11 + k12
+#k2 = GPy.kern.Bias(input_dim=1, variance=0.3)
+kernel = k1
 print("Kernel Initialized")
 
 # GPy에 넣어주기 위해 차원을 추가해줌
@@ -74,5 +82,7 @@ f_mean = np.exp(f_mean)
 
 plt.scatter(x=pred_x, y=f_mean, c=f_mean, marker="s", s=1.0, vmin=0.0, vmax=1.2*max(f_mean), cmap="Reds")
 plt.scatter(x=X, y=Y, marker="s", s=1.0, vmin=0.0, vmax=1.2*max(Y), cmap="Blues")
+plt.scatter(x=measure_x, y=measure_y, s=20.0, cmap="Oranges")
 plt.xlim([0,10])
+plt.ylim([0,53])
 plt.show()
