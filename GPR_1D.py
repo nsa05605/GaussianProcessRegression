@@ -5,6 +5,10 @@ import matplotlib.pyplot as plt
 import GPy
 import random
 import cv2
+import sklearn.gaussian_process.kernels
+
+from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.gaussian_process.kernels import ExpSineSquared
 
 ### 1차원 방사선 데이터 만들기
 # 기본적인 생각은 하나의 x 지점에 대해 방사선 원점을 설정하고, 그 강도를 지정
@@ -19,7 +23,7 @@ import cv2
 # 이때 커널 함수는 Matern32, RBF 사용해서 비교
 
 # 거리는 x[100]-x[i]
-X = np.arange(0, 10.01, 0.01)
+X = np.arange(-5, 5.01, 0.01)
 Y = np.zeros(1001)
 Y[500] = 50
 
@@ -36,53 +40,55 @@ while(True):
 
 # measure_x, measure_y 를 랜덤으로 뽑기
 # 해당 값들은 GPR에 적용할 데이터
-measure_x = np.zeros(20)
-measure_y = np.zeros(20)
+measure_x = np.zeros(11).reshape(-1,1)
+measure_y = np.zeros(11).reshape(-1,1)
 random.seed(0)
-for i in range(20):
+for i in range(11):
     # rnd = random.randint(0, 1000)
     # noise = random.randrange(-3,3)
     # print(rnd)
     # measure_x[i] = X[rnd]
     # measure_y[i] = Y[rnd] + noise
-    measure_x[i] = X[i*50]
-    measure_y[i] = Y[i*50]
+    measure_x[i] = X[i*100]
+    measure_y[i] = Y[i*100]
 
 print("Data Ready")
 
 poisson_likelihood = GPy.likelihoods.Poisson()
 laplace_inf = GPy.inference.latent_function_inference.Laplace()
 
-k1 = GPy.kern.Matern32(input_dim=1, variance=3.8, lengthscale=5.4, ARD=False)
-#k1 = GPy.kern.Matern52(input_dim=1, variance=0.5, lengthscale=0.5, ARD=False)
-#k1 = GPy.kern.RBF(input_dim=1, variance=0.5, lengthscale=0.5, ARD=False)
-#k1 = GPy.kern.Exponential(input_dim=1, variance=2.5, lengthscale=9.4, ARD=False)
-#k1 = k11 + k12
-#k2 = GPy.kern.Bias(input_dim=1, variance=0.3)
-kernel = k1
+k1 = GPy.kern.Matern32(input_dim=1, variance=1.0, lengthscale=0.1, ARD=False)
+#k1 = GPy.kern.Matern52(input_dim=1, variance=1.0, lengthscale=1.0, ARD=False)
+#k1 = GPy.kern.RBF(input_dim=1, variance=1.0, lengthscale=1.0, ARD=False)
+#k1 = GPy.kern.Exponential(input_dim=1, variance=1.0, lengthscale=1.0, ARD=False)
+#k1 = GPy.kern.PeriodicExponential()
+k2 = GPy.kern.Bias(input_dim=1, variance=0.3)
+kernel = k1 + k2
 print("Kernel Initialized")
+# k1.plot()
+# plt.xlim([-10,10])
+# plt.ylim([0, 1])
+# plt.show()
 
-# GPy에 넣어주기 위해 차원을 추가해줌
-measure_x = np.expand_dims(measure_x, axis=1)
-measure_y = np.expand_dims(measure_y, axis=1)
-
-model = GPy.core.GP(X=measure_x, Y=measure_y, likelihood=poisson_likelihood, inference_method=laplace_inf, kernel=kernel)
+#model = GPy.core.GP(X=measure_x, Y=measure_y, likelihood=poisson_likelihood, inference_method=laplace_inf, kernel=kernel)
+model = GPy.models.GPRegression(measure_x, measure_y, kernel)
 print("Pre-optimization : ")
 print(model)
-model.optimize(messages=True, max_f_eval=1000)
+model.optimize(messages=True)
 print("Optimized : ")
 print(model)
 
 # 예측할 값들의 범위
-pred_x = np.arange(0, 10.01, 0.01)
-pred_x = np.expand_dims(pred_x, axis=1)
+pred_x = np.arange(-5, 5.01, 0.01).reshape(-1,1)
 
 f_mean, f_var = model._raw_predict(pred_x)
-f_mean = np.exp(f_mean)
+#f_mean = np.exp(f_mean)
 
-plt.scatter(x=pred_x, y=f_mean, c=f_mean, marker="s", s=1.0, vmin=0.0, vmax=1.2*max(f_mean), cmap="Reds")
-plt.scatter(x=X, y=Y, marker="s", s=1.0, vmin=0.0, vmax=1.2*max(Y), cmap="Blues")
-plt.scatter(x=measure_x, y=measure_y, s=20.0, cmap="Oranges")
-plt.xlim([0,10])
-plt.ylim([0,53])
+#plt.scatter(x=pred_x, y=f_mean, c=f_mean, marker="s", s=1.0, vmin=0.0, vmax=1.2*max(f_mean), cmap="Reds")
+model.plot()
+plt.scatter(x=X, y=Y, marker="s", s=1.0, vmin=0.0, vmax=1.2*max(Y), c='g')
+plt.scatter(x=measure_x, y=measure_y, s=20.0, c='r')
+plt.xlim([-5,5])
+plt.ylim([-5,53])
+#plt.tight_layout()
 plt.show()
