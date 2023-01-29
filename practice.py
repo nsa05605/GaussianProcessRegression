@@ -109,3 +109,4 @@ plt.show()
 # 우리가 GP 모델에 추가하는 Noise variance(sigma_0)는 cost function에서 regularization과 같은 역할을 한다.
 # 즉, noise가 커지면 우리가 보유하고 있는 데이터에 대한 불확실도가 올라가므로 좀 더 일반화된 방향으로 모델이 학습된다.
 # Noise variance 값이 커지면, 우리의 훈련 데이터에 특화되는 성향이 낮아지므로, 좀 더 부드러운(smooth) 모델이 학습된다.
+

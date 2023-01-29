@@ -11,8 +11,8 @@ from mpl_toolkits.mplot3d import Axes3D
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF
 
-#directory = "C:/Users/rail/PycharmProjects/GaussianProcessRegression/LUNL/"    # 노트북
-directory = "C:/Users/jihun/PycharmProjects/GaussianProcessRegression/JSI/"    # 연구실
+directory = "C:/Users/rail/PycharmProjects/GaussianProcessRegression/JSI/"    # 노트북
+#directory = "C:/Users/jihun/PycharmProjects/GaussianProcessRegression/JSI/"    # 연구실
 input_file = "JSI_radiation_data.txt"
 output_file = "JSI_2Drad_GPR.txt"
 
@@ -34,7 +34,8 @@ k2 = GPy.kern.Bias(input_dim=3, variance=0.3)   # noise
 kernel = k1 + k2
 print("Kernel Initialized")
 
-m = GPy.core.GP(X=X, Y=Y, likelihood=poisson_likelihood, inference_method=laplace_inf, kernel=kernel)
+#m = GPy.core.GP(X=X, Y=Y, likelihood=poisson_likelihood, inference_method=laplace_inf, kernel=kernel)
+m = GPy.models.GPRegression(X=X, Y=Y, kernel=kernel)
 print("Pre-optimization : ")
 print(m)
 m.optimize(messages=True, max_f_eval=1000)
@@ -115,37 +116,6 @@ print(pred_point.shape)
 ### 현재 p(기존의 pred_point)가 z축으로 하나의 값만 갖기 때문에 이를 확장할 필요가 있음
 ### resolution이 0.05이기 때문에, 0.0부터 1.0까지 0.05의 간격으로 z축을 만들 예정
 ### numpy 확장 함수 알아보기
-
-'''
-### 일단 되는지 확인하기 위해 수작업
-z = np.ones((24871, 1))
-z *= 0.30
-p1 = np.hstack([pred_point, z])
-print(p1.shape)
-
-z = np.ones((24871, 1))
-z *= 0.35
-p2 = np.hstack([pred_point, z])
-print(p2.shape)
-
-z = np.ones((24871, 1))
-z *= 0.40
-p3 = np.hstack([pred_point, z])
-print(p3.shape)
-
-z = np.ones((24871, 1))
-z *= 0.45
-p4 = np.hstack([pred_point, z])
-print(p4.shape)
-
-z = np.ones((24871, 1))
-z *= 0.50
-p5 = np.hstack([pred_point, z])
-print(p5.shape)
-
-p = np.vstack((p1,p2,p3,p4,p5))
-print(p.shape)
-'''
 
 
 ### 3차원 구현 코드

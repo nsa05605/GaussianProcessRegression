@@ -43,22 +43,26 @@ while(True):
 measure_x = np.zeros(11).reshape(-1,1)
 measure_y = np.zeros(11).reshape(-1,1)
 random.seed(0)
+np.random.seed(0)
 for i in range(11):
     # rnd = random.randint(0, 1000)
-    # noise = random.randrange(-3,3)
-    # print(rnd)
+    # #noise = random.randrange(-3,3)
+    # noise = Y[rnd] - np.random.poisson(Y[rnd], 1)
+    # print(noise)
     # measure_x[i] = X[rnd]
     # measure_y[i] = Y[rnd] + noise
     measure_x[i] = X[i*100]
     measure_y[i] = Y[i*100]
+
+
 
 print("Data Ready")
 
 poisson_likelihood = GPy.likelihoods.Poisson()
 laplace_inf = GPy.inference.latent_function_inference.Laplace()
 
-k1 = GPy.kern.Matern32(input_dim=1, variance=1.0, lengthscale=0.1, ARD=False)
-#k1 = GPy.kern.Matern52(input_dim=1, variance=1.0, lengthscale=1.0, ARD=False)
+#k1 = GPy.kern.Matern32(input_dim=1, variance=1.0, lengthscale=1.0, ARD=False)
+k1 = GPy.kern.Matern52(input_dim=1, variance=1.0, lengthscale=1.0, ARD=False)
 #k1 = GPy.kern.RBF(input_dim=1, variance=1.0, lengthscale=1.0, ARD=False)
 #k1 = GPy.kern.Exponential(input_dim=1, variance=1.0, lengthscale=1.0, ARD=False)
 #k1 = GPy.kern.PeriodicExponential()
