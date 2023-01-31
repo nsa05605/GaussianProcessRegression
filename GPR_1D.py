@@ -38,21 +38,24 @@ while(True):
         break
     cnt += 1
 
+a = 21
+b = 50
+
 # measure_x, measure_y 를 랜덤으로 뽑기
 # 해당 값들은 GPR에 적용할 데이터
-measure_x = np.zeros(11).reshape(-1,1)
-measure_y = np.zeros(11).reshape(-1,1)
+measure_x = np.zeros(a).reshape(-1,1)
+measure_y = np.zeros(a).reshape(-1,1)
 random.seed(0)
 np.random.seed(0)
-for i in range(11):
+for i in range(a):
     # rnd = random.randint(0, 1000)
     # #noise = random.randrange(-3,3)
     # noise = Y[rnd] - np.random.poisson(Y[rnd], 1)
     # print(noise)
     # measure_x[i] = X[rnd]
     # measure_y[i] = Y[rnd] + noise
-    measure_x[i] = X[i*100]
-    measure_y[i] = Y[i*100]
+    measure_x[i] = X[i*b]
+    measure_y[i] = Y[i*b]
 
 
 
@@ -61,13 +64,15 @@ print("Data Ready")
 poisson_likelihood = GPy.likelihoods.Poisson()
 laplace_inf = GPy.inference.latent_function_inference.Laplace()
 
-#k1 = GPy.kern.Matern32(input_dim=1, variance=1.0, lengthscale=1.0, ARD=False)
-k1 = GPy.kern.Matern52(input_dim=1, variance=1.0, lengthscale=1.0, ARD=False)
-#k1 = GPy.kern.RBF(input_dim=1, variance=1.0, lengthscale=1.0, ARD=False)
-#k1 = GPy.kern.Exponential(input_dim=1, variance=1.0, lengthscale=1.0, ARD=False)
+
+#k11 = GPy.kern.Matern32(input_dim=1, variance=1.0, lengthscale=1.0, ARD=False)
+k11 = GPy.kern.Matern52(input_dim=1, variance=1.0, lengthscale=1.0, ARD=False)
+#k11 = GPy.kern.RBF(input_dim=1, variance=1.0, lengthscale=1.0, ARD=False)
+#k11 = GPy.kern.Exponential(input_dim=1, variance=1.0, lengthscale=1.0, ARD=False)
+#k12 = GPy.kern.Exponential(input_dim=1, variance=1.0, lengthscale=1.0, ARD=False)
 #k1 = GPy.kern.PeriodicExponential()
-k2 = GPy.kern.Bias(input_dim=1, variance=0.3)
-kernel = k1 + k2
+#k2 = GPy.kern.Bias(input_dim=1, variance=0.3)
+kernel = k11
 print("Kernel Initialized")
 # k1.plot()
 # plt.xlim([-10,10])
@@ -75,9 +80,18 @@ print("Kernel Initialized")
 # plt.show()
 
 #model = GPy.core.GP(X=measure_x, Y=measure_y, likelihood=poisson_likelihood, inference_method=laplace_inf, kernel=kernel)
-model = GPy.models.GPRegression(measure_x, measure_y, kernel)
-print("Pre-optimization : ")
-print(model)
+model = GPy.models.GPRegression(X=measure_x, Y=measure_y, kernel=kernel)
+# model.inference_method = laplace_inf
+# model.likelihood = poisson_likelihood
+
+# print("model.likelihood : ")
+# print(model.likelihood)
+#
+# print("model.inference_method : ")
+# print(model.inference_method)
+
+# print("Pre-optimization : ")
+# print(model)
 model.optimize(messages=True)
 print("Optimized : ")
 print(model)
@@ -88,11 +102,26 @@ pred_x = np.arange(-5, 5.01, 0.01).reshape(-1,1)
 f_mean, f_var = model._raw_predict(pred_x)
 #f_mean = np.exp(f_mean)
 
-#plt.scatter(x=pred_x, y=f_mean, c=f_mean, marker="s", s=1.0, vmin=0.0, vmax=1.2*max(f_mean), cmap="Reds")
-model.plot()
-plt.scatter(x=X, y=Y, marker="s", s=1.0, vmin=0.0, vmax=1.2*max(Y), c='g')
+print(max(f_mean))
+print(min(f_mean))
+
+
+plt.scatter(x=pred_x, y=f_mean, c=f_mean, marker="s", s=1.0, vmin=0.0, vmax=1.2*max(f_mean), cmap="Reds")
+#model.plot()
+#plt.scatter(x=X, y=Y, marker="s", s=1.0, vmin=0.0, vmax=1.2*max(Y), c='g')
+plt.plot(X, Y, c='g')
 plt.scatter(x=measure_x, y=measure_y, s=20.0, c='r')
 plt.xlim([-5,5])
 plt.ylim([-5,53])
 #plt.tight_layout()
 plt.show()
+
+### Least Squares 계산
+### 실제 값(Y[i])과 예측한 값(f_mean[i]) 차이의 제곱을 모두 더하고 나눠줌
+
+error = 0
+for i in range(len(pred_x)):
+    error += (Y[i]-f_mean[i])**2
+#error /= len(pred_x)
+print(error)
+
