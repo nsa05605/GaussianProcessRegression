@@ -38,24 +38,34 @@ while(True):
         break
     cnt += 1
 
-a = 21
+a = 51
 b = 50
 
 # measure_x, measure_y 를 랜덤으로 뽑기
 # 해당 값들은 GPR에 적용할 데이터
+# 포아송 분포를 갖는 노이즈를 만들기
 measure_x = np.zeros(a).reshape(-1,1)
 measure_y = np.zeros(a).reshape(-1,1)
-random.seed(0)
-np.random.seed(0)
+seed = 10
+# random.seed(seed)
+# np.random.seed(seed)
 for i in range(a):
-    # rnd = random.randint(0, 1000)
-    # #noise = random.randrange(-3,3)
-    # noise = Y[rnd] - np.random.poisson(Y[rnd], 1)
-    # print(noise)
-    # measure_x[i] = X[rnd]
-    # measure_y[i] = Y[rnd] + noise
-    measure_x[i] = X[i*b]
-    measure_y[i] = Y[i*b]
+    rnd = random.randint(0, 1000)
+
+    # pNoise = np.random.poisson(Y[rnd], 10)
+    # num = 0
+    # for cnt in range(10):
+    #     num += pNoise[cnt]
+    # avg = num / 10
+    # noise = Y[rnd] - avg
+
+    noise = Y[rnd] - np.random.poisson(Y[rnd], 1)
+
+    print("Real Y[rnd] : {}, noise : {}".format(Y[rnd], noise))
+    measure_x[i] = X[rnd]
+    measure_y[i] = Y[rnd] + noise
+    # measure_x[i] = X[i*b]
+    # measure_y[i] = Y[i*b]
 
 
 
@@ -65,8 +75,8 @@ poisson_likelihood = GPy.likelihoods.Poisson()
 laplace_inf = GPy.inference.latent_function_inference.Laplace()
 
 
-#k11 = GPy.kern.Matern32(input_dim=1, variance=1.0, lengthscale=1.0, ARD=False)
-k11 = GPy.kern.Matern52(input_dim=1, variance=1.0, lengthscale=1.0, ARD=False)
+k11 = GPy.kern.Matern32(input_dim=1, variance=1.0, lengthscale=1.0, ARD=False)
+#k11 = GPy.kern.Matern52(input_dim=1, variance=1.0, lengthscale=1.0, ARD=False)
 #k11 = GPy.kern.RBF(input_dim=1, variance=1.0, lengthscale=1.0, ARD=False)
 #k11 = GPy.kern.Exponential(input_dim=1, variance=1.0, lengthscale=1.0, ARD=False)
 #k12 = GPy.kern.Exponential(input_dim=1, variance=1.0, lengthscale=1.0, ARD=False)
@@ -74,7 +84,7 @@ k11 = GPy.kern.Matern52(input_dim=1, variance=1.0, lengthscale=1.0, ARD=False)
 #k2 = GPy.kern.Bias(input_dim=1, variance=0.3)
 kernel = k11
 print("Kernel Initialized")
-# k1.plot()
+# kernel.plot()
 # plt.xlim([-10,10])
 # plt.ylim([0, 1])
 # plt.show()
@@ -96,6 +106,7 @@ model.optimize(messages=True)
 print("Optimized : ")
 print(model)
 
+
 # 예측할 값들의 범위
 pred_x = np.arange(-5, 5.01, 0.01).reshape(-1,1)
 
@@ -106,13 +117,13 @@ print(max(f_mean))
 print(min(f_mean))
 
 
-plt.scatter(x=pred_x, y=f_mean, c=f_mean, marker="s", s=1.0, vmin=0.0, vmax=1.2*max(f_mean), cmap="Reds")
-#model.plot()
+#plt.scatter(x=pred_x, y=f_mean, c=f_mean, marker="s", s=1.0, vmin=0.0, vmax=1.2*max(f_mean), cmap="Reds")
+model.plot()
 #plt.scatter(x=X, y=Y, marker="s", s=1.0, vmin=0.0, vmax=1.2*max(Y), c='g')
 plt.plot(X, Y, c='g')
 plt.scatter(x=measure_x, y=measure_y, s=20.0, c='r')
-plt.xlim([-5,5])
-plt.ylim([-5,53])
+plt.xlim([-7,7])
+plt.ylim([-5,60])
 #plt.tight_layout()
 plt.show()
 
@@ -122,6 +133,6 @@ plt.show()
 error = 0
 for i in range(len(pred_x)):
     error += (Y[i]-f_mean[i])**2
-#error /= len(pred_x)
+error /= len(pred_x)
 print(error)
 
