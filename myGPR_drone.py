@@ -25,11 +25,13 @@ print("Data Ready")
 poisson_likelihood = GPy.likelihoods.Poisson()
 laplace_inf = GPy.inference.latent_function_inference.Laplace()
 
-k1 = GPy.kern.RBF(input_dim=3, variance=0.8, lengthscale=0.5, ARD=False)
-#k1 = GPy.kern.Matern32(input_dim=3, variance=0.8, lengthscale=0.5, ARD=False)
+#k1 = GPy.kern.RBF(input_dim=3, variance=0.8, lengthscale=0.5, ARD=False)
+k1 = GPy.kern.Matern32(input_dim=3, variance=0.8, lengthscale=0.5, ARD=False)
 k2 = GPy.kern.Bias(input_dim=3, variance=0.3)   # noise
 kernel = k1 + k2
 print("Kernel Initialized")
+
+
 
 
 m = GPy.core.GP(X=X, Y=Y, likelihood=poisson_likelihood, inference_method=laplace_inf, kernel=kernel)
@@ -38,6 +40,8 @@ print(m)
 m.optimize(messages=True, max_f_eval=1000)
 print("Optimized :")
 print(m)
+
+
 
 
 # mapFile Loading

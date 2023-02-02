@@ -23,34 +23,43 @@ from sklearn.gaussian_process.kernels import ExpSineSquared
 # 이때 커널 함수는 Matern32, RBF 사용해서 비교
 
 # 거리는 x[100]-x[i]
-X = np.arange(-5, 5.01, 0.01)
-Y = np.zeros(1001)
-Y[500] = 50
+X = np.arange(-6, 6.01, 0.01)
+Y = np.zeros(1201)
+Y[600] = 100
 
 cnt=1
 while(True):
-    difference = X[500] - X[500 - cnt]
+    difference = X[600] - X[600 - cnt]
+    ## 방법 1
     distance = math.sqrt((difference**2 + 1))
-    Y[500 - cnt] = Y[500] / (distance ** 2)
-    Y[500 + cnt] = Y[500 - cnt]
+    X[600 - cnt] = X[600] - (distance-1)
+    X[600 + cnt] = X[600] + (distance-1)
+    print(distance)
+
+    ## 방법 2
+    #distance = math.sqrt((difference + 1) ** 2)
+
+    Y[600 - cnt] = Y[600] / (distance ** 2)
+    Y[600 + cnt] = Y[600 - cnt]
+
     #print("{2:03d}번째 distance : {0:0.6f}, y값 : {1:0.6f}".format(distance, Y[100 - cnt], cnt))
-    if (cnt==500):
+    if (cnt==600):
         break
     cnt += 1
 
-a = 51
-b = 50
+a = 21
+b = 60
 
 # measure_x, measure_y 를 랜덤으로 뽑기
 # 해당 값들은 GPR에 적용할 데이터
 # 포아송 분포를 갖는 노이즈를 만들기
 measure_x = np.zeros(a).reshape(-1,1)
 measure_y = np.zeros(a).reshape(-1,1)
-seed = 10
-# random.seed(seed)
-# np.random.seed(seed)
+seed = 15
+random.seed(seed)
+np.random.seed(seed)
 for i in range(a):
-    rnd = random.randint(0, 1000)
+    rnd = random.randint(0, 1200)
 
     # pNoise = np.random.poisson(Y[rnd], 10)
     # num = 0
@@ -74,31 +83,37 @@ print("Data Ready")
 poisson_likelihood = GPy.likelihoods.Poisson()
 laplace_inf = GPy.inference.latent_function_inference.Laplace()
 
+linear      = GPy.kern.Linear(input_dim=1, variances=1.0)
+matern32    = GPy.kern.Matern32(input_dim=1, variance=1.5, lengthscale=1.0)
+matern52    = GPy.kern.Matern52(input_dim=1, variance=1.0, lengthscale=1.0)
+rbf         = GPy.kern.RBF(input_dim=1, variance=1.0, lengthscale=1.0)
+exponential = GPy.kern.Exponential(input_dim=1, variance=1.0, lengthscale=1.0)
+ratquad     = GPy.kern.RatQuad(input_dim=1, variance=1.0, lengthscale=1.0)
 
-k11 = GPy.kern.Matern32(input_dim=1, variance=1.0, lengthscale=1.0, ARD=False)
+#k11 = GPy.kern.Matern32(input_dim=1, variance=1.0, lengthscale=1.0, ARD=False)
 #k11 = GPy.kern.Matern52(input_dim=1, variance=1.0, lengthscale=1.0, ARD=False)
 #k11 = GPy.kern.RBF(input_dim=1, variance=1.0, lengthscale=1.0, ARD=False)
 #k11 = GPy.kern.Exponential(input_dim=1, variance=1.0, lengthscale=1.0, ARD=False)
+#k12 = GPy.kern.RatQuad(input_dim=1, variance=1.0, lengthscale=1.0, ARD=False)
 #k12 = GPy.kern.Exponential(input_dim=1, variance=1.0, lengthscale=1.0, ARD=False)
-#k1 = GPy.kern.PeriodicExponential()
 #k2 = GPy.kern.Bias(input_dim=1, variance=0.3)
-kernel = k11
+kernel = matern32
 print("Kernel Initialized")
-# kernel.plot()
-# plt.xlim([-10,10])
-# plt.ylim([0, 1])
-# plt.show()
+kernel.plot()
+plt.xlim([-10,10])
+plt.ylim([0, 1])
+plt.show()
 
 #model = GPy.core.GP(X=measure_x, Y=measure_y, likelihood=poisson_likelihood, inference_method=laplace_inf, kernel=kernel)
 model = GPy.models.GPRegression(X=measure_x, Y=measure_y, kernel=kernel)
-# model.inference_method = laplace_inf
-# model.likelihood = poisson_likelihood
+model.inference_method = laplace_inf
+model.likelihood = poisson_likelihood
 
-# print("model.likelihood : ")
-# print(model.likelihood)
-#
-# print("model.inference_method : ")
-# print(model.inference_method)
+print("model.likelihood : ")
+print(model.likelihood)
+
+print("model.inference_method : ")
+print(model.inference_method)
 
 # print("Pre-optimization : ")
 # print(model)
@@ -106,24 +121,35 @@ model.optimize(messages=True)
 print("Optimized : ")
 print(model)
 
+kernel.plot()
+plt.xlim([-10,10])
+plt.ylim([0, 1])
+plt.show()
+
 
 # 예측할 값들의 범위
-pred_x = np.arange(-5, 5.01, 0.01).reshape(-1,1)
+## 방법 1
+pred_x = X.reshape(-1, 1)
+#print(pred_x.shape)
+
+## 방법 2
+#pred_x = np.arange(-5, 5.01, 0.01).reshape(-1,1)
 
 f_mean, f_var = model._raw_predict(pred_x)
-#f_mean = np.exp(f_mean)
+f_mean = np.exp(f_mean)
 
 print(max(f_mean))
 print(min(f_mean))
 
 
 #plt.scatter(x=pred_x, y=f_mean, c=f_mean, marker="s", s=1.0, vmin=0.0, vmax=1.2*max(f_mean), cmap="Reds")
-model.plot()
-#plt.scatter(x=X, y=Y, marker="s", s=1.0, vmin=0.0, vmax=1.2*max(Y), c='g')
-plt.plot(X, Y, c='g')
-plt.scatter(x=measure_x, y=measure_y, s=20.0, c='r')
+plt.plot(pred_x, f_mean, c='r')
+#model.plot()
+plt.scatter(x=X, y=Y, marker="s", s=1.0, vmin=0.0, vmax=1.2*max(Y), c='g')
+#plt.plot(X, Y, c='g')
+#plt.scatter(x=measure_x, y=measure_y, s=20.0, c='r')
 plt.xlim([-7,7])
-plt.ylim([-5,60])
+plt.ylim([-5,110])
 #plt.tight_layout()
 plt.show()
 
