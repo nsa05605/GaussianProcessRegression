@@ -91,6 +91,7 @@ matern52    = GPy.kern.Matern52(input_dim=1, variance=1.0, lengthscale=1.0)
 rbf         = GPy.kern.RBF(input_dim=1, variance=1.0, lengthscale=1.0)
 exponential = GPy.kern.Exponential(input_dim=1, variance=1.0, lengthscale=1.0)
 ratquad     = GPy.kern.RatQuad(input_dim=1, variance=1.0, lengthscale=1.0)
+expquad     = GPy.kern.ExpQuad(input_dim=1, variance=1.0, lengthscale=1.0)
 
 #k11 = GPy.kern.Matern32(input_dim=1, variance=1.0, lengthscale=1.0, ARD=False)
 #k11 = GPy.kern.Matern52(input_dim=1, variance=1.0, lengthscale=1.0, ARD=False)
@@ -99,15 +100,15 @@ ratquad     = GPy.kern.RatQuad(input_dim=1, variance=1.0, lengthscale=1.0)
 #k12 = GPy.kern.RatQuad(input_dim=1, variance=1.0, lengthscale=1.0, ARD=False)
 #k12 = GPy.kern.Exponential(input_dim=1, variance=1.0, lengthscale=1.0, ARD=False)
 #k2 = GPy.kern.Bias(input_dim=1, variance=0.3)
-kernel = matern32 + exponential
+kernel = exponential + expquad
 print("Kernel Initialized")
 # kernel.plot()
 # plt.xlim([-10,10])
 # plt.ylim([0, 1])
 # plt.show()
 
-model = GPy.core.GP(X=measure_x, Y=measure_y, likelihood=poisson_likelihood, inference_method=laplace_inf, kernel=kernel)
-#model = GPy.core.GP(X=measure_x, Y=measure_y, kernel=kernel, likelihood=GPy.likelihoods.Gaussian())
+#model = GPy.core.GP(X=measure_x, Y=measure_y, likelihood=poisson_likelihood, inference_method=laplace_inf, kernel=kernel)
+model = GPy.core.GP(X=measure_x, Y=measure_y, kernel=kernel, likelihood=GPy.likelihoods.Gaussian())
 #model = GPy.models.GPRegression(X=measure_x, Y=measure_y, kernel=kernel)
 # model.inference_method = laplace_inf
 # model.likelihood = poisson_likelihood
@@ -120,7 +121,7 @@ print(model.inference_method)
 
 # print("Pre-optimization : ")
 # print(model)
-model.optimize(messages=True)
+model.optimize(messages=True, max_iters=1000)
 print("Optimized : ")
 print(model)
 
