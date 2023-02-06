@@ -17,7 +17,7 @@ This uses the openly available GPy library to perform the regression.
 """
 
 # Directory for file storage
-directory = "/home/rail/PycharmProjects/GPR/JSI/"
+directory = "C:/Users/jihun/PycharmProjects/GaussianProcessRegression/JSI/"
 input_file = "JSI_radiation_data.txt"
 output_file = "JSI_2Drad_GPR_Matern32.txt"
 
@@ -47,12 +47,13 @@ poisson_likelihood = GPy.likelihoods.Poisson()
 #poisson_likelihood = GPy.likelihoods.Gaussian()
 laplace_inf = GPy.inference.latent_function_inference.Laplace()
 
-k1 = GPy.kern.Matern32(input_dim=2, variance=0.54, lengthscale=0.95, ARD=False)
+#k1 = GPy.kern.Matern32(input_dim=2, variance=0.54, lengthscale=0.95, ARD=False)
+#k1 = GPy.kern.MyMatern32(input_dim=2, variance=0.8558157289031302, lengthscale=6.464012341661153, ARD=False)
 #k1 = GPy.kern.Matern52(input_dim=2, variance=0.8, lengthscale=0.5, ARD=False)
 #k1 = GPy.kern.RBF(input_dim=2, variance=0.54, lengthscale=0.95, ARD=False)
-#k1 = GPy.kern.Exponential(input_dim=2, variance=0.8, lengthscale=0.5, ARD=False)
-k2 = GPy.kern.Bias(input_dim = 2, variance = 0.6)
-kernel = k1 + k2 # Combine the two kernel primitives
+k1 = GPy.kern.Exponential(input_dim=2, variance=0.8, lengthscale=0.5, ARD=False)
+#k2 = GPy.kern.Bias(input_dim = 2, variance = 0.6)
+kernel = k1 # Combine the two kernel primitives
 print("Kernel Initialised")
 
 # Build the regression model
@@ -128,6 +129,7 @@ print("Generated Grid Of Points: " + str(grid.shape[0]))
 # Predictive GP for log intensity mean and variance
 print("Sampling At Grid Points")
 f_mean, f_var = m._raw_predict(pred_points)
+f_mean = np.exp(f_mean)
 
 # Plot GPR output on map
 # Adjust plot coordinates based on size and resolution of the SLAM map

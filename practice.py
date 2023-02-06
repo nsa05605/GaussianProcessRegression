@@ -84,7 +84,7 @@ poisson_likelihood = GPy.likelihoods.Poisson()
 laplace_inf = GPy.inference.latent_function_inference.Laplace()
 
 linear      = GPy.kern.Linear(input_dim=1, variances=1.0)
-matern32    = GPy.kern.Matern32(input_dim=1, variance=1.5, lengthscale=4.0)
+matern32    = GPy.kern.Matern32(input_dim=1, variance=1.0, lengthscale=1.0)
 matern52    = GPy.kern.Matern52(input_dim=1, variance=1.0, lengthscale=1.0)
 rbf         = GPy.kern.RBF(input_dim=1, variance=1.0, lengthscale=1.0)
 exponential = GPy.kern.Exponential(input_dim=1, variance=1.0, lengthscale=1.0)

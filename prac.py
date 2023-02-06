@@ -67,7 +67,7 @@ err.append(err_8)
 err.append(err_9)
 err.append(err_10)
 
-offset = 180
+offset = 90
 
 for sIdx in range(30):  # seed index
     measure_x = np.zeros(numMeasurement).reshape(-1, 1)
@@ -81,42 +81,39 @@ for sIdx in range(30):  # seed index
         measure_x[i] = X[rnd]
         measure_y[i] = Y[rnd] + noise
 
-    for kIdx in range(3):  # kernel index
+
+    for kIdx in range(11):  # kernel index
 
         matern32    = GPy.kern.Matern32(input_dim=1, variance=1.0, lengthscale=1.0, ARD=False)
         matern52    = GPy.kern.Matern52(input_dim=1, variance=1.0, lengthscale=1.0, ARD=False)
         rbf         = GPy.kern.RBF(input_dim=1, variance=1.0, lengthscale=1.0, ARD=False)
         exponential = GPy.kern.Exponential(input_dim=1, variance=1.0, lengthscale=1.0, ARD=False)
         ratquad     = GPy.kern.RatQuad(input_dim=1, variance=1.0, lengthscale=1.0, ARD=False)
+        mymatern32  = GPy.kern.MyMatern32(input_dim=1, variance=1.0, lengthscale=1.0, ARD=False)
 
-        # if kIdx == 0:
-        #     kernel = matern32
-        # elif kIdx == 1:
-        #     kernel = matern52
-        # elif kIdx == 2:
-        #     kernel = rbf
-        # elif kIdx == 3:
-        #     kernel = exponential
-        # elif kIdx == 4:
-        #     kernel = matern32 + exponential
-        # elif kIdx == 5:
-        #     kernel = matern52 + exponential
-        # elif kIdx == 6:
-        #     kernel = ratquad
-        # elif kIdx == 7:
-        #     kernel = matern32 + ratquad
-        # elif kIdx == 8:
-        #     kernel = exponential + ratquad
-        # elif kIdx == 9:
-        #     kernel = matern32 + ratquad + exponential
-        # elif kIdx == 10:
-        #     kernel = matern32 * ratquad + exponential
         if kIdx == 0:
             kernel = matern32
         elif kIdx == 1:
-            kernel = exponential
+            kernel = matern52
         elif kIdx == 2:
+            kernel = rbf
+        elif kIdx == 3:
+            kernel = exponential
+        elif kIdx == 4:
+            kernel = mymatern32
+        elif kIdx == 5:
+            kernel = ratquad
+        elif kIdx == 6:
             kernel = matern32 + exponential
+        elif kIdx == 7:
+            kernel = mymatern32 + exponential
+        elif kIdx == 8:
+            kernel = ratquad + exponential
+        elif kIdx == 9:
+            kernel = mymatern32 + ratquad
+        elif kIdx == 10:
+            kernel = mymatern32 * exponential
+
 
 
         model = GPy.core.GP(X=measure_x, Y=measure_y, likelihood=poisson_likelihood, inference_method=laplace_inf, kernel=kernel)
@@ -130,11 +127,11 @@ for sIdx in range(30):  # seed index
         # print("model.inference_method : ")
         # print(model.inference_method)
 
-        print("Pre-optimization : ")
+        #print("Pre-optimization : ")
         #print(model)
 
         model.optimize(messages=False)
-        print("Optimized : ")
+        #print("Optimized : ")
         # print(model)
 
 
@@ -144,18 +141,18 @@ for sIdx in range(30):  # seed index
         f_mean, f_var = model._raw_predict(pred_x)
         f_mean = np.exp(f_mean)
 
-        print(max(f_mean))
-        print(min(f_mean))
+        # print(max(f_mean))
+        # print(min(f_mean))
 
-        plt.scatter(x=pred_x, y=f_mean, c=f_mean, marker="s", s=1.0, vmin=0.0, vmax=1.2*max(f_mean), cmap="Reds")
-        model.plot()
-        # #plt.scatter(x=X, y=Y, marker="s", s=1.0, vmin=0.0, vmax=1.2*max(Y), c='g')
-        plt.plot(X, Y, c='g')
-        # plt.scatter(x=measure_x, y=measure_y, s=20.0, c='r')
-        plt.xlim([-7,7])
-        plt.ylim([-5,110])
-        # #plt.tight_layout()
-        plt.show()
+        # #plt.scatter(x=pred_x, y=f_mean, c=f_mean, marker="s", s=1.0, vmin=0.0, vmax=1.2*max(f_mean), cmap="Reds")
+        # model.plot()
+        # # #plt.scatter(x=X, y=Y, marker="s", s=1.0, vmin=0.0, vmax=1.2*max(Y), c='g')
+        # plt.plot(X, Y, c='g')
+        # # plt.scatter(x=measure_x, y=measure_y, s=20.0, c='r')
+        # plt.xlim([-7,7])
+        # plt.ylim([-5,110])
+        # # #plt.tight_layout()
+        # plt.show()
 
         ### Least Squares 계산
         ### 실제 값(Y[i])과 예측한 값(f_mean[i]) 차이의 제곱을 모두 더하고 나눠줌
@@ -164,14 +161,15 @@ for sIdx in range(30):  # seed index
         for i in range(len(pred_x)):
             error += (Y[i]-f_mean[i])**2
         error /= len(pred_x)
+        #print("kernel Idx : {}".format(kIdx))
         #print(error)
 
         err[kIdx].append(error)
 
     print("seed {} finished".format(sIdx))
 
-kernels = ['matern32', 'matern52', 'rbf', 'exponential', 'matern32 + exponential', 'matern52 + exponential',
-           'ratquad', 'matern32 + ratquad', 'exponential + ratquad', 'matern32 + ratquad + exponential', 'matern32 * ratquad + exponential']
+kernels = ['matern32', 'matern52', 'rbf', 'exponential', 'mymatern32', 'ratquad',
+           'matern32 + exponential', 'mymatern32 + exponential', 'ratquad + exponential', 'mymatern32 + ratquad', 'mymatern32 * exponential']
 for i in range(len(err)):
     sum = 0
     for j in range(len(err[i])):

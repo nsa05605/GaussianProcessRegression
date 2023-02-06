@@ -17,7 +17,7 @@ This uses the openly available GPy library to perform the regression.
 """
 
 # Directory for file storage
-directory = "C:/Users/rail/PycharmProjects/GaussianProcessRegression/LUNL/"
+directory = "C:/Users/jihun/PycharmProjects/GaussianProcessRegression/LUNL/"
 input_file = "LUNL_radiation_data.txt"
 output_file = "LUNL_2Drad_GPR.txt"
 
@@ -50,6 +50,7 @@ poisson_likelihood = GPy.likelihoods.Poisson()
 laplace_inf = GPy.inference.latent_function_inference.Laplace()
 
 k1 = GPy.kern.Matern32(input_dim=2, variance=0.8, lengthscale=0.5, ARD=False)
+#k1 = GPy.kern.MyMatern32(input_dim=2, variance=0.8, lengthscale=0.5, ARD=False)
 #k1 = GPy.kern.Matern52(input_dim=2, variance=0.8, lengthscale=0.5, ARD=False)
 #k1 = GPy.kern.RBF(input_dim=2, variance=0.8, lengthscale=0.5, ARD=False)
 #k1 = GPy.kern.Exponential(input_dim=2, variance=0.8, lengthscale=0.5, ARD=False)
