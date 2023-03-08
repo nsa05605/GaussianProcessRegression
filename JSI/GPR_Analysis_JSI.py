@@ -47,13 +47,21 @@ poisson_likelihood = GPy.likelihoods.Poisson()
 #poisson_likelihood = GPy.likelihoods.Gaussian()
 laplace_inf = GPy.inference.latent_function_inference.Laplace()
 
-#k1 = GPy.kern.Matern32(input_dim=2, variance=0.54, lengthscale=0.95, ARD=False)
-#k1 = GPy.kern.MyMatern32(input_dim=2, variance=0.8558157289031302, lengthscale=6.464012341661153, ARD=False)
-#k1 = GPy.kern.Matern52(input_dim=2, variance=0.8, lengthscale=0.5, ARD=False)
-#k1 = GPy.kern.RBF(input_dim=2, variance=0.54, lengthscale=0.95, ARD=False)
-k1 = GPy.kern.Exponential(input_dim=2, variance=0.8, lengthscale=0.5, ARD=False)
-#k2 = GPy.kern.Bias(input_dim = 2, variance = 0.6)
-kernel = k1 # Combine the two kernel primitives
+linear      = GPy.kern.Linear(input_dim=2, variances=1.0)
+matern32    = GPy.kern.Matern32(input_dim=2, variance=1.0, lengthscale=1.0)
+matern52    = GPy.kern.Matern52(input_dim=2, variance=1.0, lengthscale=1.0)
+rbf         = GPy.kern.RBF(input_dim=2, variance=1.0, lengthscale=1.0)
+exponential = GPy.kern.Exponential(input_dim=2, variance=1.0, lengthscale=1.0)
+ratquad     = GPy.kern.RatQuad(input_dim=2, variance=1.0, lengthscale=1.0)
+expquad     = GPy.kern.ExpQuad(input_dim=2, variance=1.0, lengthscale=1.0)
+
+myInvSquare = GPy.kern.MyInvSquare(input_dim=2, variance=1.4084932560265995, lengthscale=22.470821173106568)
+myAddMatExp = GPy.kern.MyAddMat32Exp(input_dim=2, variance=1.0, lengthscale=1.0)
+myMulMatExp = GPy.kern.MyMulMat32Exp(input_dim=2, variance=0.772327416232277, lengthscale=6.788298370814227)
+
+bias        = GPy.kern.Bias(input_dim = 2, variance = 0.3049831884156878)
+
+kernel = matern32+bias # Combine the two kernel primitives
 print("Kernel Initialised")
 
 # Build the regression model
@@ -131,6 +139,9 @@ print("Sampling At Grid Points")
 f_mean, f_var = m._raw_predict(pred_points)
 f_mean = np.exp(f_mean)
 
+print(max(f_mean))
+print(min(f_mean))
+
 # Plot GPR output on map
 # Adjust plot coordinates based on size and resolution of the SLAM map
 x_values = np.arange(0, map.shape[1])*metadata["resolution"] + metadata["origin"][0]
@@ -139,6 +150,7 @@ implot = plt.imshow(map, cmap='gray', extent = [np.min(x_values), np.max(x_value
 plt.scatter(x = pred_points[:,0], y = pred_points[:,1], c = f_mean, marker="s", s = 1.0, vmin=0.0, vmax=1.2*max(f_mean), cmap='jet')
 plt.xlim([-20.0,6.0])
 plt.ylim([-15,15])
+plt.colorbar()
 plt.show()
 
 # 지도에 방사선 측정 데이터 출력하는 plot 생성

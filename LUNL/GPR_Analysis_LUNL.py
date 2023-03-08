@@ -49,22 +49,38 @@ poisson_likelihood = GPy.likelihoods.Poisson()
 #poisson_likelihood = GPy.likelihoods.Gaussian()
 laplace_inf = GPy.inference.latent_function_inference.Laplace()
 
-k1 = GPy.kern.Matern32(input_dim=2, variance=0.8, lengthscale=0.5, ARD=False)
-#k1 = GPy.kern.MyMatern32(input_dim=2, variance=0.8, lengthscale=0.5, ARD=False)
-#k1 = GPy.kern.Matern52(input_dim=2, variance=0.8, lengthscale=0.5, ARD=False)
-#k1 = GPy.kern.RBF(input_dim=2, variance=0.8, lengthscale=0.5, ARD=False)
-#k1 = GPy.kern.Exponential(input_dim=2, variance=0.8, lengthscale=0.5, ARD=False)
-#k2 = GPy.kern.Bias(input_dim = 2, variance = 0.6)
-#kernel = k1 + k2 # Combine the two kernel primitives
+linear      = GPy.kern.Linear(input_dim=2, variances=1.0)
+matern32    = GPy.kern.Matern32(input_dim=2, variance=1.0, lengthscale=1.0)
+matern52    = GPy.kern.Matern52(input_dim=2, variance=1.0, lengthscale=1.0)
+rbf         = GPy.kern.RBF(input_dim=2, variance=1.0, lengthscale=1.0)
+exponential = GPy.kern.Exponential(input_dim=2, variance=1.0, lengthscale=1.0)
+ratquad     = GPy.kern.RatQuad(input_dim=2, variance=1.0, lengthscale=1.0)
+expquad     = GPy.kern.ExpQuad(input_dim=2, variance=1.0, lengthscale=1.0)
+
+myInvSquare = GPy.kern.MyInvSquare(input_dim=2, variance=1.0, lengthscale=1.0)
+myAddMatExp = GPy.kern.MyAddMat32Exp(input_dim=2, variance=1.0, lengthscale=1.0)
+myMulMatExp = GPy.kern.MyMulMat32Exp(input_dim=2, variance=1.0, lengthscale=1.0)
+
+bias = GPy.kern.Bias(input_dim=2, variance=0.3)
+kernel = myAddMatExp + bias
+# kernel = myInvSquare + bias
+# kernel = myAddMatExp + bias
+# kernel = myMulMaxExp + bias
+
 print("Kernel Initialised")
 
 # Build the regression model
 # Resources: https://nbviewer.jupyter.org/github/SheffieldML/notebook/blob/master/GPy/Poisson%20regression%20tutorial.ipynb and older https://notebook.community/SheffieldML/notebook/GPy/Poisson%20regression%20tutorial
-m = GPy.core.GP(X=X, Y=Y, likelihood=poisson_likelihood, inference_method=laplace_inf, kernel=k1)
+# m = GPy.core.GP(X=X, Y=Y, likelihood=poisson_likelihood, inference_method=laplace_inf, kernel=kernel)
+
+m = GPy.models.GPRegression(X=X, Y=Y, kernel=kernel)
+m.likelihood = poisson_likelihood
+m.inference_method = laplace_inf
+
 print("Pre-optimisation:")
 print(m)
 # Optimize model and automatically plot coarse representation
-m.optimize(messages=True,max_f_eval = 1000)
+m.optimize(messages=True,max_f_eval = 3000)
 
 print("Optimised:")
 print(m)
@@ -131,9 +147,11 @@ print("Generated Grid Of Points: " + str(grid.shape[0]))
 # Predictive GP for log intensity mean and variance
 print("Sampling At Grid Points")
 f_mean, f_var = m._raw_predict(pred_points)
+# f_mean, f_var = m.predict(pred_points)
 f_mean = np.exp(f_mean)
 print(max(f_mean))
 print(min(f_mean))
+
 
 # Plot GPR output on map
 # Adjust plot coordinates based on size and resolution of the SLAM map
@@ -156,7 +174,6 @@ plt.xlim([-4,4])
 plt.ylim([-8,0])
 plt.colorbar()
 plt.show()
-
 
 f_upper, f_lower = f_mean + 2*np.sqrt(f_var), f_mean - 2.*np.sqrt(f_var)
 

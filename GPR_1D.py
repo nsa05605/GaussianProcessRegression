@@ -36,7 +36,6 @@ while(True):
 
     ## 방법 2
     #distance = math.sqrt((difference + 1) ** 2)
-
     Y[600 - cnt] = Y[600] / (distance ** 2)
     Y[600 + cnt] = Y[600 - cnt]
 
@@ -45,16 +44,18 @@ while(True):
         break
     cnt += 1
 
-
-
 a = 11
 b = 60
+
+# print("min X : {}".format(X[0]))
+# print("max X : {}".format(X[1200]))
+
 
 # measure_x, measure_y 를 랜덤으로 뽑기
 # 해당 값들은 GPR에 적용할 데이터
 # 포아송 분포를 갖는 노이즈를 만들기
-measure_x = np.zeros(22).reshape(-1,1)
-measure_y = np.zeros(22).reshape(-1,1)
+measure_x = np.zeros(21).reshape(-1,1)
+measure_y = np.zeros(21).reshape(-1,1)
 seed = 15
 random.seed(seed)
 np.random.seed(seed)
@@ -79,12 +80,12 @@ for i in range(a):
     measure_x[10+cnt] = X[600+cnt*b]
     measure_y[cnt] = Y[600-cnt*b]
     measure_y[10+cnt] = Y[600+cnt*b]
-measure_x[21] = X[600]
-measure_y[21] = Y[600]
+
 
 print("Data Ready")
 
-poisson_likelihood = GPy.likelihoods.Poisson()
+gaussian_likelihood = GPy.likelihoods.Gaussian()
+poisson_likelihood  = GPy.likelihoods.Poisson()
 laplace_inf = GPy.inference.latent_function_inference.Laplace()
 
 linear      = GPy.kern.Linear(input_dim=1, variances=1.0)
@@ -95,29 +96,27 @@ exponential = GPy.kern.Exponential(input_dim=1, variance=1.0, lengthscale=1.0)
 ratquad     = GPy.kern.RatQuad(input_dim=1, variance=1.0, lengthscale=1.0)
 expquad     = GPy.kern.ExpQuad(input_dim=1, variance=1.0, lengthscale=1.0)
 
-mykernel    = GPy.kern.MyMatern32(input_dim=1, variance=1.0, lengthscale=1.0)
+myInvSquare = GPy.kern.MyInvSquare(input_dim=1, variance=2.0, lengthscale=0.5)
+myAddMatExp = GPy.kern.MyAddMat32Exp(input_dim=1, variance=1.0, lengthscale=1.0)
+myMulMatExp = GPy.kern.MyMulMat32Exp(input_dim=1, variance=1.0, lengthscale=1.0)
 
-#k11 = GPy.kern.Matern32(input_dim=1, variance=1.0, lengthscale=1.0, ARD=False)
-#k11 = GPy.kern.Matern52(input_dim=1, variance=1.0, lengthscale=1.0, ARD=False)
-#k11 = GPy.kern.RBF(input_dim=1, variance=1.0, lengthscale=1.0, ARD=False)
-#k11 = GPy.kern.Exponential(input_dim=1, variance=1.0, lengthscale=1.0, ARD=False)
-#k12 = GPy.kern.RatQuad(input_dim=1, variance=1.0, lengthscale=1.0, ARD=False)
-#k12 = GPy.kern.Exponential(input_dim=1, variance=1.0, lengthscale=1.0, ARD=False)
-#k2 = GPy.kern.Bias(input_dim=1, variance=0.3)
-#kernel = matern32 + exponential
-#kernel = matern32
-kernel = mykernel
+bias = GPy.kern.Bias(input_dim=1, variance=0.3)
+# kernel = matern32 + bias
+# kernel = exponential + bias
+kernel = myInvSquare + bias
+# kernel = myAddMatExp + bias
+# kernel = myMulMatExp + bias
+
 print("Kernel Initialized")
 # kernel.plot()
-# plt.xlim([-10,10])
-# plt.ylim([0, 1])
 # plt.show()
 
 model = GPy.core.GP(X=measure_x, Y=measure_y, likelihood=poisson_likelihood, inference_method=laplace_inf, kernel=kernel)
+# model = GPy.core.GP(X=measure_x, Y=measure_y, likelihood=gaussian_likelihood, kernel=kernel)
 
 # model = GPy.models.GPRegression(X=measure_x, Y=measure_y, kernel=kernel)
-# model.inference_method = laplace_inf
 # model.likelihood = poisson_likelihood
+# model.inference_method = laplace_inf
 
 print("model.likelihood : ")
 print(model.likelihood)
@@ -132,18 +131,18 @@ print("Optimized : ")
 print(model)
 
 
-
 # kernel.plot()
 # plt.xlim([-10,10])
 # plt.ylim([0, 1])
 # plt.show()
-
 
 # 예측할 값들의 범위
 pred_x = X.reshape(-1, 1)
 print(pred_x.shape)
 
 f_mean, f_var = model._raw_predict(pred_x)
+# _raw_predict의 경우에 full_cov=False가 default로 들어있는데,
+# 이는 전체 공분산 행렬을 구하는 것이 아니라 대각 행렬만 구한다는 의미
 f_mean = np.exp(f_mean)
 ### likelihood를 Poisson으로 설정하면 log(gp)로 계산되기 때문에 exp()을 해주어야 함
 # link_dunctions.py에서 class Log()의 transf 참고
@@ -153,25 +152,18 @@ print(min(f_mean))
 
 f_upper, f_lower = f_mean + 2*np.sqrt(f_var), f_mean - 2.*np.sqrt(f_var)
 
-
-#plt.scatter(x=pred_x, y=f_mean, c=f_mean, marker="s", s=1.0, vmin=0.0, vmax=1.2*max(f_mean), cmap="Reds")
-plt.plot(pred_x, f_mean, c='r')
-plt.plot(X, Y, c='g')
-
 #model.plot()
-# #model.plot_confidence()
-# #plt.scatter(x=X, y=Y, marker="s", s=1.0, vmin=0.0, vmax=1.2*max(Y), c='g')
-# plt.plot(X, Y, c='g')
-plt.scatter(x=measure_x, y=measure_y, s=20.0, c='r')
+model.plot_confidence()
+#plt.scatter(x=pred_x, y=f_mean, c=f_mean, marker="s", s=1.0, vmin=0.0, vmax=1.2*max(f_mean), cmap="Reds")
+plt.scatter(x=measure_x, y=measure_y, s=20.0, c='r')    # measured values
+plt.plot(X, Y, c='g')   # ground truth
+plt.plot(pred_x, f_mean, c='r')    # estimated values
+
 plt.xlim([-7,7])
 plt.ylim([-5,110])
-#plt.tight_layout()
 plt.show()
 
-### Confidence
-
-
-### Least Squares 계산
+### Mean Least Squares 계산
 ### 실제 값(Y[i])과 예측한 값(f_mean[i]) 차이의 제곱을 모두 더하고 나눠줌
 
 error = 0
