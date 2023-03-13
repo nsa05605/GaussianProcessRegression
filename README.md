@@ -24,3 +24,8 @@
     - pose.txt 파일이 더 적은 범위의 timestamp를 갖고 있기 때문에 기준으로 삼고 00초에 가장 가까운 time을 추출
     - 결과 pose에 있는 시간과 result_measurement.txt에 있는 시간이 동일한 경우, 해당 위치의 측정 값으로 사용
   - myGPR_drone.py : 드론으로 제작한 방사선 데이터셋 기준
+
+### 2023/03/13
+- 중간에 비어 있는 기간에는 OctoMap에 시각화하는 부분과 방사선 데이터에 적합한 커널을 찾는 작업을 진행함
+- 제작한 InvSquare 커널을 사용하여 예측한 값과 실제 데이터와 비교를 진행
+- GPR_Analysis_LUNL_sampling.py 파일과 GPR_Analysis_JSI_sampling.py 파일
