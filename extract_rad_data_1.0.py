@@ -11,7 +11,7 @@ f = open("docs/measurements.txt", 'r')
 l_time = []
 l_measure = []
 curr_sec = 43   # measurements.txt 파일이 44, 43.95초에서 시작하기 때문에 시작을 43으로 설정함
-measurements = 0
+measurements = 1
 cnt = 1
 
 while True:
@@ -22,20 +22,26 @@ while True:
 
     # print(int(line[0:2]))               # 분
     # print(int(line[3:5]))               # 초
-    # 아마 int(line[6:8]) 하면 0.00초 단위로 나올듯
+    # print(int(line[6:8]))               # 0.xx 초
     # print(int(line.split(',')[-1]))     # 측정값
 
-    curr_sec = int(line[3:5])        # 현재의 초를 기억(단위는 초)
+    curr_sec  = int(line[3:5])      # 현재의 초를 기억(단위는 0.xx초)
+    curr_ssec = int(line[6:7])      # 0.x 초
 
-    if pred_sec == curr_sec:    # 이전 step과 초 단위가 같으면
-        measurements += int(line.split(',')[-1])    # measurements 변수에 현재의 강도를 더해줌
+
+    # if (curr_sec == pred_sec and curr_ssec >= 5) or (curr_ssec < 5):
+    if (curr_ssec != 6):        # 해당 데이터셋은 measurement가 0.1초 간격이기 때문에 그냥 6으로 설정해줌
+        print("curr_sec: {}, curr_ssec : {}".format(curr_sec, curr_ssec))
+        measurements += int(line.split(',')[-1])    # measurements 변수에 현재의 강도를 더해주고
         cnt += 1                                    # cnt도 증가
-    else:                       # 이전 step과 초 단위가 달라지면
+    else:                       # curr_ssec==6 인 상황인데, 1초 간격을 나누는 기준
+        print("check")
+        print("curr_sec: {}, curr_ssec : {}".format(curr_sec, curr_ssec))
         result = measurements / cnt                 # 초 단위가 같은 측정 값들의 평균을 계산
         time = int(line[0:2])*60 + int(line[3:5])   # 시간을 맞춰줌(1분을 60초로 만들어서 초 단위의 시간)
         l_time.append(time)
         l_measure.append(round(result))             # 시간과 측정 값들의 평균을 각각 append
-        measurements = 0
+        measurements = int(line.split(',')[-1])
         cnt = 0                                     # 변수 초기화
 
 f.close()
@@ -43,7 +49,7 @@ f.close()
 print(l_time)
 print(l_measure)
 
-ff = open("result_measurement.txt", 'w')
+ff = open("result_measurement_1.0.txt", 'w')
 for i in range(350):
     data = str(l_time[i])
     ff.write(data)
@@ -58,7 +64,7 @@ ff.close()
 
 
 ### pose 추출 ###
-f = open("pose.txt", 'r')
+f = open("docs/pose.txt", 'r')
 m = open("result_measurement.txt", 'r')
 
 ### 시간과 좌표 담을 list
@@ -94,15 +100,15 @@ while True:
         l_y.append(float(line.split((','))[6]))
         l_z.append(float(line.split((','))[7]))
 
-# print(len(l_time))  # time
-# print(len(l_x))     # x
-# print(len(l_y))     # y
-# print(len(l_z))     # z
+print(len(l_time))  # time
+print(len(l_x))     # x
+print(len(l_y))     # y
+print(len(l_z))     # z
 
 ### pose에 없는 시간도 있어서
 ### pose의 time을 기준으로 result_measurment.txt에 있으면 해당 측정값을 사용
 
-ff = open("radiation_data.txt", 'w')
+ff = open("docs/radiation_data_1.0.txt", 'w')
 for i in range(119):
     while True:
         line_m = m.readline()

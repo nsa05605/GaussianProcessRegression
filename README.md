@@ -29,3 +29,7 @@
 - 중간에 비어 있는 기간에는 OctoMap에 시각화하는 부분과 방사선 데이터에 적합한 커널을 찾는 작업을 진행함
 - 제작한 InvSquare 커널을 사용하여 예측한 값과 실제 데이터와 비교를 진행
 - GPR_Analysis_LUNL_sampling.py 파일과 GPR_Analysis_JSI_sampling.py 파일
+
+### 2023/03/14
+- 이전에 진행했던 2차원 샘플링에 이어 3차원 데이터에 대해 샘플링을 하기 위해 데이터를 1초, 0.2초 간격으로 통합하는 작업을 진행 중
+- extract_rad_data_1.0.py 파일과 extract_rad_data_0.2.py 파일
